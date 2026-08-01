@@ -224,8 +224,6 @@ bool SocialNetwork::add_friend(int _user_a, int _user_b)
 
     user_a->add_friend_id(_user_b);
     user_b->add_friend_id(_user_a);
-    user_a->set_follower_count(user_a->friend_count());
-    user_b->set_follower_count(user_b->friend_count());
     return true;
 }
 
@@ -240,11 +238,6 @@ bool SocialNetwork::remove_friend(int _user_a, int _user_b)
         user_a->remove_friend_id(_user_b);
     if (user_b != nullptr)
         user_b->remove_friend_id(_user_a);
-
-    if (user_a != nullptr)
-        user_a->set_follower_count(user_a->friend_count());
-    if (user_b != nullptr)
-        user_b->set_follower_count(user_b->friend_count());
 
     return true;
 }

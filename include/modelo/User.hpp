@@ -16,7 +16,6 @@ private:
     Vector<int> m_friend_ids;
     Vector<int> m_post_ids;
 
-    std::size_t m_follower_count;
     std::size_t m_reactions_received;
 
 public:
@@ -36,9 +35,6 @@ public:
     void remove_post_id(int _post_id);
     const Vector<int>& post_ids() const;
     std::size_t post_count() const;
-
-    void set_follower_count(std::size_t _count);
-    std::size_t follower_count() const;
 
     void add_reaction();
     void remove_reactions(std::size_t _count);

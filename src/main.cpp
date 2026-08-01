@@ -67,7 +67,6 @@ void show_user_profile(SocialNetwork& _network, int _user_id)
     std::cout << " Correo:          " << user->email() << std::endl;
     std::cout << " Registrado:      " << user->registration_date() << std::endl;
     std::cout << " Amigos:          " << user->friend_count() << std::endl;
-    std::cout << " Seguidores:      " << user->follower_count() << std::endl;
     std::cout << " Publicaciones:   " << user->post_count() << std::endl;
     std::cout << " Reacciones recibidas: " << user->reactions_received() << std::endl;
     std::cout << "----------------------------------------\n" << std::endl;

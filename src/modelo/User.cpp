@@ -2,7 +2,7 @@
 
 User::User(int _id, const std::string& _name, const std::string& _email, const std::string& _registration_date)
     : m_id(_id), m_name(_name), m_email(_email), m_registration_date(_registration_date),
-      m_friend_ids(), m_post_ids(), m_follower_count(0), m_reactions_received(0)
+    m_friend_ids(), m_post_ids(), m_reactions_received(0)
 {
 }
 
@@ -69,16 +69,6 @@ const Vector<int>& User::post_ids() const
 std::size_t User::post_count() const
 {
     return m_post_ids.size();
-}
-
-void User::set_follower_count(std::size_t _count)
-{
-    m_follower_count = _count;
-}
-
-std::size_t User::follower_count() const
-{
-    return m_follower_count;
 }
 
 void User::add_reaction()
