@@ -3,45 +3,93 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish]{babel}
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=2.3cm]{geometry}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{tabularx}
 \usepackage{listings}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, shapes.multipart}
-\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{parskip}
 \usepackage{enumitem}
+\usepackage{hyperref}
+
+% ---------------------------------------------------------------------
+% Estilo visual
+% ---------------------------------------------------------------------
+\definecolor{titleblue}{RGB}{20,50,90}
+\definecolor{tablehead}{RGB}{20,50,90}
+\definecolor{rowlight}{RGB}{237,242,247}
 
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue!50!black,
-    urlcolor=blue!50!black
+    linkcolor=titleblue,
+    urlcolor=titleblue,
+    citecolor=titleblue
 }
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{titleblue}}
+  {\thesection}{0.6em}{}[{\color{titleblue!30}\titlerule}]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{titleblue}}
+  {\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.4em}{0.8em}
+\titlespacing*{\subsection}{0pt}{1.1em}{0.6em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textsc{Mini Red Social}}
+\fancyhead[R]{\small\textsc{Informe Técnico}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{titleblue!40}\leaders\hrule height \headrulewidth\hfill}}
+
+\rowcolors{2}{rowlight}{white}
+\arrayrulecolor{titleblue!50}
 
 \lstdefinestyle{terminal}{
     basicstyle=\ttfamily\small,
     backgroundcolor=\color{black!5},
     frame=single,
+    rulecolor=\color{black!30},
     breaklines=true,
     columns=fullflexible,
     showstringspaces=false
 }
 \lstset{style=terminal}
 
-\title{\textbf{Mini Red Social} \\ \large Informe Técnico \\ Algoritmos y Estructuras de Datos}
+\newcommand{\diagram}[1]{%
+    \begin{center}
+    \resizebox{0.94\textwidth}{!}{#1}
+    \end{center}
+}
+
+\title{\textbf{\Huge Mini Red Social} \\[0.3em] \Large Informe Técnico \\[0.2em] \large Algoritmos y Estructuras de Datos}
 \author{
-    Integrante 1 \\
-    Integrante 2 \\
-    Integrante 3 \\
-    Integrante 4
+    Elyud Edgar Chayna Calcina \\
+    Omar Rivera \\
+    Edu Sucari \\
+    Rodrigo
 }
 \date{31 de julio de 2026}
 
 \begin{document}
 
 \maketitle
+\thispagestyle{empty}
+\vspace{2cm}
+\begin{center}
+    \rule{0.6\textwidth}{0.6pt}\\[0.4em]
+    \textit{Proyecto Final del curso, desarrollado íntegramente en C++ \\
+    sin utilizar estructuras de datos de la STL.}
+\end{center}
+\newpage
+
 \tableofcontents
 \newpage
 
@@ -74,7 +122,7 @@ servicio que las integra.
 
 El sistema está organizado en cuatro capas, de arriba hacia abajo:
 
-\begin{enumerate}
+\begin{enumerate}[leftmargin=1.4em]
     \item \textbf{CLI} (\texttt{src/main.cpp}): menús jerárquicos de
     consola (usuarios, publicaciones, amistades, estadísticas /
     rendimiento, dataset).
@@ -92,7 +140,7 @@ El sistema está organizado en cuatro capas, de arriba hacia abajo:
 
 \texttt{SocialNetwork} mantiene internamente:
 
-\begin{itemize}
+\begin{itemize}[leftmargin=1.4em]
     \item \texttt{HashTable<int, User>} y \texttt{HashTable<int, Post>}
     como índice primario por ID (búsqueda O(1) promedio).
     \item \texttt{HashTable<int, Comment>} para los comentarios,
@@ -127,42 +175,44 @@ resultados a un CSV.
 \section{Descripción de las estructuras utilizadas}
 
 \begin{center}
-\begin{tabular}{@{}l p{9.5cm}@{}}
+\rowcolors{2}{rowlight}{white}
+\begin{tabularx}{\textwidth}{@{}l X@{}}
 \toprule
-\textbf{Estructura} & \textbf{Rol en el proyecto} \\
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Estructura}} & \textcolor{white}{\textbf{Rol en el proyecto}} \\
 \midrule
 \texttt{Vector<T>} &
 Arreglo dinámico no ordenado (capacidad duplicada al llenarse,
 eliminación por swap con el último elemento). Se usa para listas de
 amigos y publicaciones por usuario, resultados de búsquedas y
-colecciones de IDs. \\[0.4em]
+colecciones de IDs. \\
 \texttt{LinkedList<T>} &
 Lista simplemente enlazada. Se usa como cadena de colisiones dentro de
 \texttt{HashTable} y como \emph{bucket} del índice por nombre en
-\texttt{AVLTree}. \\[0.4em]
+\texttt{AVLTree}. \\
 \texttt{Deque<T>} &
 Cola de doble extremo con buffer circular. Se usa como cola FIFO en el
-BFS de \texttt{Graph::shortest\_path}. \\[0.4em]
+BFS de \texttt{Graph::shortest\_path}. \\
 \texttt{AVLTree<K,V>} &
 Árbol binario de búsqueda balanceado por rotaciones. Se usa como índice
-secundario de usuarios por nombre. \\[0.4em]
+secundario de usuarios por nombre. \\
 \texttt{Heap<T>} &
 Max-heap genérico con functor de comparación intercambiable. Se usa para
 los rankings top-K: usuarios más activos, publicaciones con más
 reacciones y sugerencias de amistad ordenadas por cantidad de amigos en
-común. \\[0.4em]
+común. \\
 \texttt{HashTable<K,V>} &
 Tabla hash con manejo de colisiones por encadenamiento (usa
 \texttt{LinkedList} internamente) y rehash automático al superar el
 factor de carga máximo. Es el índice primario de usuarios y
 publicaciones por ID, y la representación de la lista de adyacencia del
-grafo. \\[0.4em]
+grafo. \\
 \texttt{Graph<K>} &
 Grafo no dirigido (lista de adyacencia sobre \texttt{HashTable}). Modela
 la red de amistades: BFS para camino más corto, intersección de vecinos
 para amigos en común, y conteo de amigos en común para sugerencias. \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 % ---------------------------------------------------------------------
@@ -170,9 +220,9 @@ para amigos en común, y conteo de amigos en común para sugerencias. \\
 
 \subsection{Diagrama de capas}
 
-\begin{center}
+\diagram{
 \begin{tikzpicture}[
-    box/.style={draw, rounded corners, minimum width=10.5cm, minimum height=1.1cm, align=center, fill=blue!5},
+    box/.style={draw, rounded corners, minimum width=10.5cm, minimum height=1.1cm, align=center, fill=titleblue!6, draw=titleblue!60},
     node distance=0.8cm
 ]
 \node[box] (cli) {\textbf{CLI} (\texttt{src/main.cpp}) \\ Menús: usuarios, publicaciones, amistades, estadísticas, dataset};
@@ -180,18 +230,18 @@ para amigos en común, y conteo de amigos en común para sugerencias. \\
 \node[box, below=of service, minimum width=5cm, xshift=-2.9cm] (model) {\textbf{Entidades} \\ \texttt{User}, \texttt{Post}, \texttt{Comment}};
 \node[box, below=of service, minimum width=5cm, xshift=2.9cm] (struct) {\textbf{Estructuras de datos} \\ \footnotesize \texttt{Vector}, \texttt{LinkedList}, \texttt{Deque}, \texttt{AVLTree}, \texttt{Heap}, \texttt{HashTable}, \texttt{Graph}};
 
-\draw[-Latex] (cli) -- (service);
-\draw[-Latex] (service) -- (model);
-\draw[-Latex] (service) -- (struct);
-\draw[-Latex] (model) -- (struct);
+\draw[-Latex, titleblue] (cli) -- (service);
+\draw[-Latex, titleblue] (service) -- (model);
+\draw[-Latex, titleblue] (service) -- (struct);
+\draw[-Latex, titleblue] (model) -- (struct);
 \end{tikzpicture}
-\end{center}
+}
 
 \subsection{Diagrama de clases (entidades y servicio)}
 
-\begin{center}
+\diagram{
 \begin{tikzpicture}[
-    classbox/.style={rectangle split, rectangle split parts=2, draw, align=left, minimum width=4cm, font=\footnotesize},
+    classbox/.style={rectangle split, rectangle split parts=2, draw=titleblue!60, fill=titleblue!4, align=left, minimum width=4.2cm, font=\footnotesize},
     node distance=0.9cm and 0.7cm
 ]
 
@@ -221,7 +271,7 @@ para amigos en común, y conteo de amigos en común para sugerencias. \\
     text, date
 };
 
-\node[classbox, below=1.4cm of post, minimum width=8.5cm] (network) {
+\node[classbox, below=1.4cm of post, minimum width=9cm] (network) {
     \textbf{SocialNetwork}
     \nodepart{second}
     m\_users: HashTable<int,User> \\
@@ -231,11 +281,11 @@ para amigos en común, y conteo de amigos en común para sugerencias. \\
     m\_friendships: Graph<int>
 };
 
-\draw[-Latex] (network) -- (user);
-\draw[-Latex] (network) -- (post);
-\draw[-Latex] (network) -- (comment);
+\draw[-Latex, titleblue] (network) -- (user);
+\draw[-Latex, titleblue] (network) -- (post);
+\draw[-Latex, titleblue] (network) -- (comment);
 \end{tikzpicture}
-\end{center}
+}
 
 \subsection{Grafo de amistades y camino más corto (BFS)}
 
@@ -244,24 +294,24 @@ aristas $(1,2)$, $(1,3)$, $(2,4)$, $(3,4)$ y $(4,5)$. El camino de
 amistad calculado por \texttt{shortest\_path(1, 5)} (resaltado en rojo)
 es $1 \rightarrow 2 \rightarrow 4 \rightarrow 5$.
 
-\begin{center}
-\begin{tikzpicture}[node/.style={draw, circle, minimum size=0.9cm}, >=Latex]
+\diagram{
+\begin{tikzpicture}[node/.style={draw=titleblue, fill=titleblue!8, circle, minimum size=0.9cm}, >=Latex]
 \node[node] (n1) at (0,0)   {1};
 \node[node] (n2) at (2,1)   {2};
 \node[node] (n3) at (2,-1)  {3};
 \node[node] (n4) at (4,0)   {4};
 \node[node] (n5) at (6,0)   {5};
 
-\draw (n1) -- (n3);
-\draw (n3) -- (n4);
+\draw[titleblue!50] (n1) -- (n3);
+\draw[titleblue!50] (n3) -- (n4);
 
-\draw[very thick, red] (n1) -- (n2);
-\draw[very thick, red] (n2) -- (n4);
-\draw[very thick, red] (n4) -- (n5);
+\draw[very thick, red!70!black] (n1) -- (n2);
+\draw[very thick, red!70!black] (n2) -- (n4);
+\draw[very thick, red!70!black] (n4) -- (n5);
 \end{tikzpicture}
-\end{center}
+}
 
-Este mismo grafo se usa en el informe para ilustrar \texttt{common\_friends(2, 3)}:
+Este mismo grafo se usa para ilustrar \texttt{common\_friends(2, 3)}:
 ambos comparten como vecinos a $1$ y a $4$, por lo que el resultado es
 $\{1, 4\}$ (verificado en la sección de capturas).
 
@@ -269,30 +319,41 @@ $\{1, 4\}$ (verificado en la sección de capturas).
 \section{Complejidad computacional}
 
 Sea $n$ el número de usuarios y $d$ el grado promedio (cantidad de
-amigos) de un usuario.
+amigos) de un usuario. Las operaciones sin prefijo de clase pertenecen a
+\texttt{SocialNetwork}.
 
 \begin{center}
-\begin{tabular}{@{}l l p{6.3cm}@{}}
+\rowcolors{2}{rowlight}{white}
+\begin{tabularx}{\textwidth}{@{}l l X@{}}
 \toprule
-\textbf{Operación} & \textbf{Complejidad} & \textbf{Notas} \\
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Operación}} & \textcolor{white}{\textbf{Complejidad}} & \textcolor{white}{\textbf{Notas}} \\
 \midrule
-\texttt{Vector::add\_item} & O(1) amortizado & duplica capacidad al llenarse \\
-\texttt{Vector::remove\_index} & O(1) & swap con el último elemento \\
-\texttt{Vector::search} & O(n) & lineal \\
-\texttt{LinkedList::add\_last} / \texttt{add\_first} & O(1) & mantiene puntero a la cola \\
-\texttt{LinkedList::search} / \texttt{remove\_item} & O(n) & lineal \\
-\texttt{Deque::add\_front} / \texttt{add\_back} & O(1) amortizado & buffer circular con resize \\
-\texttt{AVLTree::insert} / \texttt{search} / \texttt{remove} & O(log n) & balanceado por rotaciones \\
-\texttt{Heap::insert} / \texttt{extract\_top} & O(log k) & $k$ = elementos en el heap \\
-\texttt{HashTable::put} / \texttt{search} / \texttt{remove} & O(1) promedio, O(n) peor caso & depende de la calidad del hash y el factor de carga \\
-\texttt{SocialNetwork::register\_user} & O(1) promedio & inserción en \texttt{HashTable} + \texttt{AVLTree} (O(log u), $u$ = nombres distintos) \\
-\texttt{SocialNetwork::add\_friend} / \texttt{remove\_friend} & O(d) & recorre la lista de adyacencia para evitar aristas duplicadas \\
-\texttt{SocialNetwork::friendship\_path} (BFS) & O(n + a) & $a$ = número de aristas del grafo \\
-\texttt{SocialNetwork::common\_friends} & O(d) & intersección lineal de dos listas de adyacencia \\
-\texttt{SocialNetwork::friend\_suggestions} & O(n $\cdot$ d) & recorre todos los vértices y, para cada uno, su lista de adyacencia \\
-\texttt{SocialNetwork::most\_active\_users} / \texttt{most\_reacted\_posts} & O(n log n) & inserta todos los elementos en un \texttt{Heap} y extrae el top-k \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{Vector<T>}} \\
+\texttt{add\_item} & O(1) amortizado & Duplica la capacidad al llenarse. \\
+\texttt{remove\_index} & O(1) & Swap con el último elemento. \\
+\texttt{search} & O(n) & Recorrido lineal. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{LinkedList<T>}} \\
+\texttt{add\_first} / \texttt{add\_last} & O(1) & Mantiene punteros a cabeza y cola. \\
+\texttt{search} / \texttt{remove\_item} & O(n) & Recorrido lineal. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{Deque<T>}} \\
+\texttt{add\_front} / \texttt{add\_back} & O(1) amortizado & Buffer circular, resize al llenarse. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{AVLTree<K,V>}} \\
+\texttt{insert} / \texttt{search} / \texttt{remove} & O(log n) & Balanceado por rotaciones. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{Heap<T>}} \\
+\texttt{insert} / \texttt{extract\_top} & O(log k) & $k$ = elementos en el heap. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{HashTable<K,V>}} \\
+\texttt{put} / \texttt{search} / \texttt{remove} & O(1) prom., O(n) peor caso & Depende del factor de carga. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{SocialNetwork}} \\
+\texttt{register\_user} & O(1) promedio & HashTable + AVLTree (O(log u), $u$ = nombres distintos). \\
+\texttt{add\_friend} / \texttt{remove\_friend} & O(d) & Recorre la lista de adyacencia para evitar duplicados. \\
+\texttt{friendship\_path} (BFS) & O(n + a) & $a$ = número de aristas del grafo. \\
+\texttt{common\_friends} & O(d) & Intersección lineal de dos listas de adyacencia. \\
+\texttt{friend\_suggestions} & O(n $\cdot$ d) & Recorre todos los vértices y su lista de adyacencia. \\
+\texttt{most\_active\_users} & O(n log n) & Inserta todo en un Heap y extrae el top-k. \\
+\texttt{most\_reacted\_posts} & O(n log n) & Igual que \texttt{most\_active\_users}. \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 El punto más débil identificado es \texttt{friend\_suggestions}: la
@@ -313,22 +374,28 @@ operaciones sobre tres tamaños de dataset. Ejecutado en la máquina de
 desarrollo del equipo:
 
 \begin{center}
-\small
-\begin{tabular}{@{}r r r r r r r@{}}
+\rowcolors{2}{rowlight}{white}
+\begin{tabular}{@{}l r r r@{}}
 \toprule
-\textbf{Usuarios} & \textbf{Generación} & \textbf{Camino de} & \textbf{Amigos en} & \textbf{Sugerencias} & \textbf{Usuarios más} & \textbf{Posts más} \\
- & \textbf{(ms)} & \textbf{amistad (ms)} & \textbf{común (ms)} & \textbf{(ms)} & \textbf{activos (ms)} & \textbf{reaccionados (ms)} \\
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Métrica}} &
+\textcolor{white}{\textbf{1\,000 usuarios}} &
+\textcolor{white}{\textbf{5\,000 usuarios}} &
+\textcolor{white}{\textbf{10\,000 usuarios}} \\
 \midrule
-1\,000  & 27.76   & 0.38 & 0.11 & 26.13  & 0.13 & 0.40 \\
-5\,000  & 500.07  & 2.06 & 0.24 & 304.95 & 0.17 & 0.71 \\
-10\,000 & 1\,898.13 & 3.59 & 0.31 & 703.10 & 0.34 & 1.25 \\
+Generación del dataset (ms)   & 27.76 & 500.07 & 1\,898.13 \\
+Camino de amistad -- BFS (ms) & 0.38  & 2.06   & 3.59 \\
+Amigos en común (ms)          & 0.11  & 0.24   & 0.31 \\
+Sugerencias de amistad (ms)   & 26.13 & 304.95 & 703.10 \\
+Usuarios más activos (ms)     & 0.13  & 0.17   & 0.34 \\
+Posts más reaccionados (ms)   & 0.40  & 0.71   & 1.25 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 Observaciones:
 
-\begin{itemize}
+\begin{itemize}[leftmargin=1.4em]
     \item El \textbf{camino de amistad (BFS)} y los \textbf{rankings
     top-K} escalan bien: crecen mucho más lento que el tamaño del
     dataset, consistente con sus complejidades O(n + a) y O(n log n).
@@ -411,7 +478,7 @@ Tiene arista 1-2 tras borrar: no
 % ---------------------------------------------------------------------
 \section{Conclusiones}
 
-\begin{itemize}
+\begin{itemize}[leftmargin=1.4em]
     \item Fue posible construir toda la capa de datos de una red social
     (usuarios, amistades, publicaciones, comentarios, reacciones) usando
     únicamente estructuras propias, sin recurrir a la STL.
