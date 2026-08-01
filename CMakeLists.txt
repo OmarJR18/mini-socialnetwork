@@ -19,4 +19,7 @@ add_executable(deque_test tests/deque_test.cpp)
 # Executable for AVL test
 add_executable(avl_test tests/avl_test.cpp)
 
+# Executable for Heap test
+add_executable(heap_test tests/heap_test.cpp)
+
 # No libraries needed for now
