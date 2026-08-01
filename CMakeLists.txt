@@ -28,4 +28,20 @@ add_executable(hashtable_test tests/hashtable_test.cpp)
 # Executable for Graph test
 add_executable(graph_test tests/graph_test.cpp)
 
+set(MODELO_SOURCES
+    src/modelo/User.cpp
+    src/modelo/Post.cpp
+    src/modelo/Comment.cpp
+)
+
+set(SERVICIOS_SOURCES
+    src/servicios/SocialNetwork.cpp
+)
+
+# Executable for modelo (User/Post/Comment) test
+add_executable(modelo_test tests/modelo_test.cpp ${MODELO_SOURCES})
+
+# Executable for SocialNetwork test
+add_executable(socialnetwork_test tests/socialnetwork_test.cpp ${MODELO_SOURCES} ${SERVICIOS_SOURCES})
+
 # No libraries needed for now
