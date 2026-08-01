@@ -1,0 +1,505 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.multipart}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+% ---------------------------------------------------------------------
+% Estilo visual
+% ---------------------------------------------------------------------
+\definecolor{titleblue}{RGB}{20,50,90}
+\definecolor{tablehead}{RGB}{20,50,90}
+\definecolor{rowlight}{RGB}{237,242,247}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=titleblue,
+    urlcolor=titleblue,
+    citecolor=titleblue
+}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{titleblue}}
+  {\thesection}{0.6em}{}[{\color{titleblue!30}\titlerule}]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{titleblue}}
+  {\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.4em}{0.8em}
+\titlespacing*{\subsection}{0pt}{1.1em}{0.6em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textsc{Mini Red Social}}
+\fancyhead[R]{\small\textsc{Informe Técnico}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{titleblue!40}\leaders\hrule height \headrulewidth\hfill}}
+
+\rowcolors{2}{rowlight}{white}
+\arrayrulecolor{titleblue!50}
+
+\lstdefinestyle{terminal}{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{black!5},
+    frame=single,
+    rulecolor=\color{black!30},
+    breaklines=true,
+    columns=fullflexible,
+    showstringspaces=false
+}
+\lstset{style=terminal}
+
+\newcommand{\diagram}[1]{%
+    \begin{center}
+    \resizebox{0.94\textwidth}{!}{#1}
+    \end{center}
+}
+
+\title{\textbf{\Huge Mini Red Social} \\[0.3em] \Large Informe Técnico \\[0.2em] \large Algoritmos y Estructuras de Datos}
+\author{
+    Elyud Edgar Chayna Calcina \\
+    Omar Rivera \\
+    Edu Sucari \\
+    Rodrigo
+}
+\date{31 de julio de 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\vspace{2cm}
+\begin{center}
+    \rule{0.6\textwidth}{0.6pt}\\[0.4em]
+    \textit{Proyecto Final del curso, desarrollado íntegramente en C++ \\
+    sin utilizar estructuras de datos de la STL.}
+\end{center}
+\newpage
+
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------------------
+\section{Introducción}
+
+Este proyecto implementa el núcleo de funcionamiento de una red social
+simplificada: usuarios, relaciones de amistad, publicaciones, comentarios
+y reacciones, replicando el tipo de operaciones que sostiene una red
+social real (registrar personas, conectar amistades, publicar contenido y
+calcular relaciones no triviales entre usuarios, como el camino de
+amistad o las sugerencias de amistad).
+
+La restricción central del enunciado es que ninguna estructura de datos
+proviene de la STL de C++. \texttt{Vector}, listas enlazadas,
+\texttt{Deque}, \texttt{AVLTree}, \texttt{Heap}, \texttt{HashTable} y
+\texttt{Graph} están implementadas desde cero por el equipo. Sobre esas
+siete estructuras se construye una capa de entidades (\texttt{User},
+\texttt{Post}, \texttt{Comment}) y un servicio orquestador
+(\texttt{SocialNetwork}) que expone las funcionalidades pedidas en el
+enunciado a través de una interfaz de consola (CLI).
+
+El desarrollo fue incremental: cada estructura de datos se implementó,
+probó y aprobó por separado antes de pasar a la siguiente, y recién con
+las siete estructuras listas se construyó la capa de dominio y el
+servicio que las integra.
+
+% ---------------------------------------------------------------------
+\section{Arquitectura del sistema}
+
+El sistema está organizado en cuatro capas, de arriba hacia abajo:
+
+\begin{enumerate}[leftmargin=1.4em]
+    \item \textbf{CLI} (\texttt{src/main.cpp}): menús jerárquicos de
+    consola (usuarios, publicaciones, amistades, estadísticas /
+    rendimiento, dataset).
+    \item \textbf{Servicio orquestador} (\texttt{SocialNetwork}, en
+    \texttt{include/servicios} y \texttt{src/servicios}): conecta todo lo
+    demás y expone las operaciones del enunciado.
+    \item \textbf{Entidades de dominio} (\texttt{User}, \texttt{Post},
+    \texttt{Comment}, en \texttt{include/modelo} y \texttt{src/modelo}):
+    representan los datos que pide el enunciado.
+    \item \textbf{Estructuras de datos genéricas}
+    (\texttt{include/estructuras}): \texttt{Vector}, \texttt{LinkedList},
+    \texttt{Deque}, \texttt{AVLTree}, \texttt{Heap}, \texttt{HashTable} y
+    \texttt{Graph}, todas implementadas desde cero.
+\end{enumerate}
+
+\texttt{SocialNetwork} mantiene internamente:
+
+\begin{itemize}[leftmargin=1.4em]
+    \item \texttt{HashTable<int, User>} y \texttt{HashTable<int, Post>}
+    como índice primario por ID (búsqueda O(1) promedio).
+    \item \texttt{HashTable<int, Comment>} para los comentarios,
+    referenciados por ID desde cada \texttt{Post}.
+    \item \texttt{AVLTree<std::string, LinkedList<int>>} como índice
+    secundario por nombre. Permite nombres repetidos: cada nodo del árbol
+    guarda la lista de IDs de los usuarios que comparten ese nombre.
+    \item \texttt{Graph<int>} para las relaciones de amistad: camino de
+    amistad (BFS), amigos en común y sugerencias.
+    \item Dos \texttt{Vector<int>} (\texttt{m\_user\_ids},
+    \texttt{m\_post\_ids}) que llevan el registro de IDs activos, porque
+    \texttt{HashTable} no expone iteración sobre sus entradas y se
+    necesita recorrer ``todos los usuarios'' o ``todas las
+    publicaciones'' para calcular los rankings.
+\end{itemize}
+
+Los IDs de usuario, publicación y comentario son enteros
+autoincrementales asignados por \texttt{SocialNetwork} y nunca se
+reutilizan, incluso después de un borrado. Así se evita que un ID viejo
+``resucite'' en el índice por nombre o en una lista de amigos que
+todavía no se actualizó.
+
+\texttt{DatasetGenerator} (en \texttt{data/generador}) puebla una
+\texttt{SocialNetwork} con datos sintéticos (usuarios, amistades y
+publicaciones) usando un generador congruencial lineal propio, sin
+depender de \texttt{<random>}. \texttt{Benchmark} (en
+\texttt{src/servicios}) mide con \texttt{<chrono>} el tiempo de las
+operaciones más costosas sobre datasets de distinto tamaño y exporta los
+resultados a un CSV.
+
+% ---------------------------------------------------------------------
+\section{Descripción de las estructuras utilizadas}
+
+\begin{center}
+\rowcolors{2}{rowlight}{white}
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Estructura}} & \textcolor{white}{\textbf{Rol en el proyecto}} \\
+\midrule
+\texttt{Vector<T>} &
+Arreglo dinámico no ordenado (capacidad duplicada al llenarse,
+eliminación por swap con el último elemento). Se usa para listas de
+amigos y publicaciones por usuario, resultados de búsquedas y
+colecciones de IDs. \\
+\texttt{LinkedList<T>} &
+Lista simplemente enlazada. Se usa como cadena de colisiones dentro de
+\texttt{HashTable} y como \emph{bucket} del índice por nombre en
+\texttt{AVLTree}. \\
+\texttt{Deque<T>} &
+Cola de doble extremo con buffer circular. Se usa como cola FIFO en el
+BFS de \texttt{Graph::shortest\_path}. \\
+\texttt{AVLTree<K,V>} &
+Árbol binario de búsqueda balanceado por rotaciones. Se usa como índice
+secundario de usuarios por nombre. \\
+\texttt{Heap<T>} &
+Max-heap genérico con functor de comparación intercambiable. Se usa para
+los rankings top-K: usuarios más activos, publicaciones con más
+reacciones y sugerencias de amistad ordenadas por cantidad de amigos en
+común. \\
+\texttt{HashTable<K,V>} &
+Tabla hash con manejo de colisiones por encadenamiento (usa
+\texttt{LinkedList} internamente) y rehash automático al superar el
+factor de carga máximo. Es el índice primario de usuarios y
+publicaciones por ID, y la representación de la lista de adyacencia del
+grafo. \\
+\texttt{Graph<K>} &
+Grafo no dirigido (lista de adyacencia sobre \texttt{HashTable}). Modela
+la red de amistades: BFS para camino más corto, intersección de vecinos
+para amigos en común, y conteo de amigos en común para sugerencias. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------------------
+\section{Diagramas}
+
+\subsection{Diagrama de capas}
+
+\diagram{
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners, minimum width=10.5cm, minimum height=1.1cm, align=center, fill=titleblue!6, draw=titleblue!60},
+    node distance=0.8cm
+]
+\node[box] (cli) {\textbf{CLI} (\texttt{src/main.cpp}) \\ Menús: usuarios, publicaciones, amistades, estadísticas, dataset};
+\node[box, below=of cli] (service) {\textbf{Servicio orquestador}: \texttt{SocialNetwork}};
+\node[box, below=of service, minimum width=5cm, xshift=-2.9cm] (model) {\textbf{Entidades} \\ \texttt{User}, \texttt{Post}, \texttt{Comment}};
+\node[box, below=of service, minimum width=5cm, xshift=2.9cm] (struct) {\textbf{Estructuras de datos} \\ \footnotesize \texttt{Vector}, \texttt{LinkedList}, \texttt{Deque}, \texttt{AVLTree}, \texttt{Heap}, \texttt{HashTable}, \texttt{Graph}};
+
+\draw[-Latex, titleblue] (cli) -- (service);
+\draw[-Latex, titleblue] (service) -- (model);
+\draw[-Latex, titleblue] (service) -- (struct);
+\draw[-Latex, titleblue] (model) -- (struct);
+\end{tikzpicture}
+}
+
+\subsection{Diagrama de clases (entidades y servicio)}
+
+\diagram{
+\begin{tikzpicture}[
+    classbox/.style={rectangle split, rectangle split parts=2, draw=titleblue!60, fill=titleblue!4, align=left, minimum width=4.2cm, font=\footnotesize},
+    node distance=0.9cm and 0.7cm
+]
+
+\node[classbox] (user) {
+    \textbf{User}
+    \nodepart{second}
+    id, name, email \\
+    registration\_date \\
+    friend\_ids: Vector<int> \\
+    post\_ids: Vector<int> \\
+    follower\_count \\
+    reactions\_received
+};
+
+\node[classbox, right=of user] (post) {
+    \textbf{Post}
+    \nodepart{second}
+    id, owner\_id, date, text \\
+    like\_count \\
+    comment\_ids: Vector<int>
+};
+
+\node[classbox, right=of post] (comment) {
+    \textbf{Comment}
+    \nodepart{second}
+    id, author\_id, post\_id \\
+    text, date
+};
+
+\node[classbox, below=1.4cm of post, minimum width=9cm] (network) {
+    \textbf{SocialNetwork}
+    \nodepart{second}
+    m\_users: HashTable<int,User> \\
+    m\_posts: HashTable<int,Post> \\
+    m\_comments: HashTable<int,Comment> \\
+    m\_users\_by\_name: AVLTree<string,LinkedList<int>> \\
+    m\_friendships: Graph<int>
+};
+
+\draw[-Latex, titleblue] (network) -- (user);
+\draw[-Latex, titleblue] (network) -- (post);
+\draw[-Latex, titleblue] (network) -- (comment);
+\end{tikzpicture}
+}
+
+\subsection{Grafo de amistades y camino más corto (BFS)}
+
+Ejemplo real tomado de \texttt{tests/graph\_test.cpp}: un grafo con
+aristas $(1,2)$, $(1,3)$, $(2,4)$, $(3,4)$ y $(4,5)$. El camino de
+amistad calculado por \texttt{shortest\_path(1, 5)} (resaltado en rojo)
+es $1 \rightarrow 2 \rightarrow 4 \rightarrow 5$.
+
+\diagram{
+\begin{tikzpicture}[node/.style={draw=titleblue, fill=titleblue!8, circle, minimum size=0.9cm}, >=Latex]
+\node[node] (n1) at (0,0)   {1};
+\node[node] (n2) at (2,1)   {2};
+\node[node] (n3) at (2,-1)  {3};
+\node[node] (n4) at (4,0)   {4};
+\node[node] (n5) at (6,0)   {5};
+
+\draw[titleblue!50] (n1) -- (n3);
+\draw[titleblue!50] (n3) -- (n4);
+
+\draw[very thick, red!70!black] (n1) -- (n2);
+\draw[very thick, red!70!black] (n2) -- (n4);
+\draw[very thick, red!70!black] (n4) -- (n5);
+\end{tikzpicture}
+}
+
+Este mismo grafo se usa para ilustrar \texttt{common\_friends(2, 3)}:
+ambos comparten como vecinos a $1$ y a $4$, por lo que el resultado es
+$\{1, 4\}$ (verificado en la sección de capturas).
+
+% ---------------------------------------------------------------------
+\section{Complejidad computacional}
+
+Sea $n$ el número de usuarios y $d$ el grado promedio (cantidad de
+amigos) de un usuario. Las operaciones sin prefijo de clase pertenecen a
+\texttt{SocialNetwork}.
+
+\begin{center}
+\rowcolors{2}{rowlight}{white}
+\begin{tabularx}{\textwidth}{@{}l l X@{}}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Operación}} & \textcolor{white}{\textbf{Complejidad}} & \textcolor{white}{\textbf{Notas}} \\
+\midrule
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{Vector<T>}} \\
+\texttt{add\_item} & O(1) amortizado & Duplica la capacidad al llenarse. \\
+\texttt{remove\_index} & O(1) & Swap con el último elemento. \\
+\texttt{search} & O(n) & Recorrido lineal. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{LinkedList<T>}} \\
+\texttt{add\_first} / \texttt{add\_last} & O(1) & Mantiene punteros a cabeza y cola. \\
+\texttt{search} / \texttt{remove\_item} & O(n) & Recorrido lineal. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{Deque<T>}} \\
+\texttt{add\_front} / \texttt{add\_back} & O(1) amortizado & Buffer circular, resize al llenarse. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{AVLTree<K,V>}} \\
+\texttt{insert} / \texttt{search} / \texttt{remove} & O(log n) & Balanceado por rotaciones. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{Heap<T>}} \\
+\texttt{insert} / \texttt{extract\_top} & O(log k) & $k$ = elementos en el heap. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{HashTable<K,V>}} \\
+\texttt{put} / \texttt{search} / \texttt{remove} & O(1) prom., O(n) peor caso & Depende del factor de carga. \\
+\rowcolor{titleblue!15}\multicolumn{3}{@{}l}{\textbf{SocialNetwork}} \\
+\texttt{register\_user} & O(1) promedio & HashTable + AVLTree (O(log u), $u$ = nombres distintos). \\
+\texttt{add\_friend} / \texttt{remove\_friend} & O(d) & Recorre la lista de adyacencia para evitar duplicados. \\
+\texttt{friendship\_path} (BFS) & O(n + a) & $a$ = número de aristas del grafo. \\
+\texttt{common\_friends} & O(d) & Intersección lineal de dos listas de adyacencia. \\
+\texttt{friend\_suggestions} & O(n $\cdot$ d) & Recorre todos los vértices y su lista de adyacencia. \\
+\texttt{most\_active\_users} & O(n log n) & Inserta todo en un Heap y extrae el top-k. \\
+\texttt{most\_reacted\_posts} & O(n log n) & Igual que \texttt{most\_active\_users}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+El punto más débil identificado es \texttt{friend\_suggestions}: la
+implementación actual de \texttt{Graph} recorre \textbf{todos} los
+vértices del grafo por cada consulta (no solo los amigos de los amigos),
+lo que la vuelve O(n $\cdot$ d) en vez de O(d\textsuperscript{2}). Esto se
+confirma en los resultados experimentales de la siguiente sección y
+queda documentado aquí como una limitación conocida, no como un error
+oculto.
+
+% ---------------------------------------------------------------------
+\section{Resultados experimentales}
+
+Los tiempos se midieron con \texttt{Benchmark::run}, que genera un
+dataset sintético con \texttt{DatasetGenerator} (8 amigos promedio y 3
+publicaciones promedio por usuario) y mide con \texttt{<chrono>} seis
+operaciones sobre tres tamaños de dataset. Ejecutado en la máquina de
+desarrollo del equipo:
+
+\begin{center}
+\rowcolors{2}{rowlight}{white}
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+\rowcolor{tablehead}
+\textcolor{white}{\textbf{Métrica}} &
+\textcolor{white}{\textbf{1\,000 usuarios}} &
+\textcolor{white}{\textbf{5\,000 usuarios}} &
+\textcolor{white}{\textbf{10\,000 usuarios}} \\
+\midrule
+Generación del dataset (ms)   & 27.76 & 500.07 & 1\,898.13 \\
+Camino de amistad -- BFS (ms) & 0.38  & 2.06   & 3.59 \\
+Amigos en común (ms)          & 0.11  & 0.24   & 0.31 \\
+Sugerencias de amistad (ms)   & 26.13 & 304.95 & 703.10 \\
+Usuarios más activos (ms)     & 0.13  & 0.17   & 0.34 \\
+Posts más reaccionados (ms)   & 0.40  & 0.71   & 1.25 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Observaciones:
+
+\begin{itemize}[leftmargin=1.4em]
+    \item El \textbf{camino de amistad (BFS)} y los \textbf{rankings
+    top-K} escalan bien: crecen mucho más lento que el tamaño del
+    dataset, consistente con sus complejidades O(n + a) y O(n log n).
+    \item Las \textbf{sugerencias de amistad} son, con claridad, la
+    operación más costosa y la que peor escala (crece casi proporcional
+    al número de usuarios), confirmando el análisis de la sección
+    anterior.
+    \item La \textbf{generación del dataset} domina el tiempo total
+    porque cada \texttt{add\_friend}/\texttt{create\_post} pasa por
+    varias estructuras (\texttt{HashTable}, \texttt{AVLTree},
+    \texttt{Graph}); es esperable y no es una operación que el usuario
+    final repita en un flujo normal de uso.
+\end{itemize}
+
+Estos números se regeneran en
+\texttt{data/generador/benchmark\_results.csv} al ejecutar la opción
+``Ejecutar benchmark'' del menú de Estadísticas del CLI.
+
+% ---------------------------------------------------------------------
+\section{Capturas del funcionamiento}
+
+Salida real del CLI (\texttt{mini\_socialnetwork}) generando un dataset
+pequeño y consultando el ranking de usuarios más activos:
+
+\begin{lstlisting}
+--- Dataset ---
+1. Generar dataset sintetico
+0. Volver
+Opcion: 1
+Cantidad de usuarios a generar: 50
+Amigos promedio por usuario: 5
+Publicaciones promedio por usuario: 2
+Dataset generado. Usuarios totales: 50, publicaciones totales: 100
+
+--- Estadisticas / Rendimiento ---
+1. Usuarios mas activos
+2. Publicaciones con mas reacciones
+3. Ejecutar benchmark (exporta CSV)
+0. Volver
+Opcion: 1
+Cuantos mostrar: 5
+ID    Nombre                  Correo                      Amigos   Posts
+1     Pedro Flores            user1@mail.com              15       2
+50    Ana Rios                user50@mail.com             5        2
+49    Jose Vega               user49@mail.com             5        2
+48    Sofia Gomez             user48@mail.com             5        2
+47    Diego Torres            user47@mail.com             5        2
+\end{lstlisting}
+
+Perfil de usuario formateado:
+
+\begin{lstlisting}
+----------------------------------------
+ Perfil de Pedro Flores
+----------------------------------------
+ ID:              1
+ Correo:          user1@mail.com
+ Registrado:      2026-06-25
+ Amigos:          15
+ Seguidores:      0
+ Publicaciones:   2
+ Reacciones recibidas: 3
+----------------------------------------
+\end{lstlisting}
+
+Salida de \texttt{graph\_test}, sobre el grafo de la sección de
+diagramas (confirma el camino BFS $1 \to 2 \to 4 \to 5$ y los amigos en
+común $\{1, 4\}$ entre los usuarios 2 y 3):
+
+\begin{lstlisting}
+=== Prueba de Graph<int> ===
+Vertices: 5
+Tiene arista 1-2: si
+Camino 1->5: 1 2 4 5
+Amigos en comun 2 y 3: 1 4
+Sugerencias para 1: 4
+Tiene arista 1-2 tras borrar: no
+\end{lstlisting}
+
+% ---------------------------------------------------------------------
+\section{Conclusiones}
+
+\begin{itemize}[leftmargin=1.4em]
+    \item Fue posible construir toda la capa de datos de una red social
+    (usuarios, amistades, publicaciones, comentarios, reacciones) usando
+    únicamente estructuras propias, sin recurrir a la STL.
+    \item Separar el proyecto en estructuras genéricas
+    (\texttt{include/estructuras}), entidades de dominio
+    (\texttt{include/modelo}) y un servicio orquestador
+    (\texttt{include/servicios}) permitió que cada estructura se probara
+    de forma aislada antes de integrarla, y que el servicio no dependiera
+    de los detalles internos de cada estructura.
+    \item El cuello de botella real del sistema no está en las
+    estructuras base (todas se comportan según su complejidad teórica)
+    sino en un algoritmo de más alto nivel
+    (\texttt{friend\_suggestions}), lo cual es el tipo de hallazgo que
+    solo aparece al medir con datasets de tamaño creciente en vez de
+    asumir la complejidad sobre el papel.
+    \item Queda como trabajo futuro, fuera del alcance de este proyecto:
+    optimizar \texttt{friend\_suggestions} para que recorra solo
+    amigos-de-amigos en vez de todos los vértices, y probar el sistema
+    con datasets de cientos de miles de usuarios (el diseño está pensado
+    para escalar a ese tamaño, pero se validó experimentalmente hasta
+    10\,000 usuarios por el tiempo disponible para el proyecto).
+\end{itemize}
+
+\end{document}
