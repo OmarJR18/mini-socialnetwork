@@ -25,4 +25,7 @@ add_executable(heap_test tests/heap_test.cpp)
 # Executable for HashTable test
 add_executable(hashtable_test tests/hashtable_test.cpp)
 
+# Executable for Graph test
+add_executable(graph_test tests/graph_test.cpp)
+
 # No libraries needed for now
