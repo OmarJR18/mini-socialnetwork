@@ -16,4 +16,7 @@ add_executable(linkedlist_test tests/linkedlist_test.cpp)
 # Executable for deque test
 add_executable(deque_test tests/deque_test.cpp)
 
+# Executable for AVL test
+add_executable(avl_test tests/avl_test.cpp)
+
 # No libraries needed for now
