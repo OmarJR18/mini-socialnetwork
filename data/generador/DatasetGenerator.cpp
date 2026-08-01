@@ -26,6 +26,8 @@ int DatasetGenerator::random_range(int _min, int _max)
 
 void DatasetGenerator::generate(SocialNetwork& _network, std::size_t _user_count, std::size_t _avg_friends_per_user, std::size_t _avg_posts_per_user)
 {
+    _network = SocialNetwork();
+
     static const char* first_names[] = {
         "Ana", "Luis", "Maria", "Jose", "Carla", "Pedro", "Lucia", "Diego", "Sofia", "Mateo"
     };
