@@ -10,4 +10,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Executable for vector test
 add_executable(vector_test tests/vector_test.cpp)
 
+# Executable for linked list test
+add_executable(linkedlist_test tests/linkedlist_test.cpp)
+
 # No libraries needed for now
