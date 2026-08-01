@@ -22,4 +22,7 @@ add_executable(avl_test tests/avl_test.cpp)
 # Executable for Heap test
 add_executable(heap_test tests/heap_test.cpp)
 
+# Executable for HashTable test
+add_executable(hashtable_test tests/hashtable_test.cpp)
+
 # No libraries needed for now

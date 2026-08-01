@@ -32,6 +32,7 @@ public:
     void add_first(const T& _item);
     void add_last(const T& _item);
     bool remove_first();
+    bool remove_at(std::size_t _index);
     bool remove_item(const T& _item);
     int search(const T& _item) const;
 
@@ -136,6 +137,30 @@ bool LinkedList<T>::remove_first()
     if (m_head == nullptr)
         m_tail = nullptr;
 
+    return true;
+}
+
+template <typename T>
+bool LinkedList<T>::remove_at(std::size_t _index)
+{
+    if (_index >= m_size)
+        return false;
+
+    if (_index == 0)
+        return remove_first();
+
+    Node* current = m_head;
+    for (std::size_t i = 0; i < _index - 1; ++i)
+        current = current->next;
+
+    Node* target = current->next;
+    current->next = target->next;
+
+    if (target == m_tail)
+        m_tail = current;
+
+    delete target;
+    --m_size;
     return true;
 }
 
