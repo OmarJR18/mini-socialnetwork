@@ -13,6 +13,12 @@ add_executable(vector_test tests/vector_test.cpp)
 # Executable for linked list test
 add_executable(linkedlist_test tests/linkedlist_test.cpp)
 
+# Executable for doubly linked list test
+add_executable(doublylinkedlist_test tests/doublylinkedlist_test.cpp)
+
+# Executable for circular linked list test
+add_executable(circularlinkedlist_test tests/circularlinkedlist_test.cpp)
+
 # Executable for deque test
 add_executable(deque_test tests/deque_test.cpp)
 
