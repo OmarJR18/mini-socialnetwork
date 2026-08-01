@@ -179,7 +179,7 @@ bool Graph<K, Hash, Equal>::remove_edge(const K& _a, const K& _b)
 template <typename K, typename Hash, typename Equal>
 bool Graph<K, Hash, Equal>::has_vertex(const K& _key) const
 {
-    return find_vertex_index(_key) != -1;
+    return m_adj.contains(_key);
 }
 
 template <typename K, typename Hash, typename Equal>
@@ -187,7 +187,6 @@ bool Graph<K, Hash, Equal>::has_edge(const K& _a, const K& _b) const
 {
     return contains_friend(_a, _b);
 }
-
 template <typename K, typename Hash, typename Equal>
 std::size_t Graph<K, Hash, Equal>::vertex_count() const
 {
