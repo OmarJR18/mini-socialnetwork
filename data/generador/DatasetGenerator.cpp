@@ -63,7 +63,11 @@ void DatasetGenerator::generate(SocialNetwork& _network, std::size_t _user_count
     for (std::size_t i = 0; i < ids.size(); ++i) {
         int owner = ids[i];
 
-        for (std::size_t p = 0; p < _avg_posts_per_user; ++p) {
+        int min_posts = _avg_posts_per_user > 2 ? _avg_posts_per_user - 2 : 0;
+        int max_posts = _avg_posts_per_user + 2;
+        int posts_count = random_range(min_posts, max_posts);
+
+        for (std::size_t p = 0; p < posts_count; ++p) {
             char date[16];
             std::snprintf(date, sizeof(date), "2026-%02d-%02d", random_range(1, 12), random_range(1, 28));
 
