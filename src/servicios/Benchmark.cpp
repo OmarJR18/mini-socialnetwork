@@ -21,8 +21,14 @@ void Benchmark::run(const std::string& _csv_path)
 {
     std::size_t sizes[] = { 1000, 5000, 10000 };
     const std::size_t sizes_count = 3;
+    const int trials = 5;
 
     std::ofstream csv(_csv_path.c_str());
+    if (!csv.is_open()) {
+        std::cout << "No se pudo abrir " << _csv_path << " para escritura." << std::endl;
+        return;
+    }
+
     csv << "usuarios,generacion_ms,camino_amistad_ms,amigos_comunes_ms,sugerencias_ms,usuarios_activos_ms,posts_reaccionados_ms\n";
 
     for (std::size_t s = 0; s < sizes_count; ++s) {
@@ -36,20 +42,36 @@ void Benchmark::run(const std::string& _csv_path)
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
         double generation_ms = elapsed_ms(start, end);
 
+        // camino de amistad: promedio sobre varios pares espaciados a lo largo
+        // del rango de usuarios, para que el resultado no dependa de un solo
+        // par fijo que puede ser atipico
         start = std::chrono::steady_clock::now();
-        network.friendship_path(1, static_cast<int>(user_count));
+        for (int t = 0; t < trials; ++t) {
+            int a = static_cast<int>(user_count * (t + 1) / (trials + 1));
+            int b = static_cast<int>(user_count * (t + 2) / (trials + 1));
+            network.friendship_path(a, b);
+        }
         end = std::chrono::steady_clock::now();
-        double path_ms = elapsed_ms(start, end);
+        double path_ms = elapsed_ms(start, end) / trials;
 
+        // amigos en comun: mismo criterio, varios pares para promediar
         start = std::chrono::steady_clock::now();
-        network.common_friends(1, 2);
+        for (int t = 0; t < trials; ++t) {
+            int a = static_cast<int>(user_count * (t + 1) / (trials + 1));
+            int b = static_cast<int>(user_count * (t + 2) / (trials + 1));
+            network.common_friends(a, b);
+        }
         end = std::chrono::steady_clock::now();
-        double common_ms = elapsed_ms(start, end);
+        double common_ms = elapsed_ms(start, end) / trials;
 
+        // sugerencias: varios usuarios en distintos puntos del rango
         start = std::chrono::steady_clock::now();
-        network.friend_suggestions(1);
+        for (int t = 0; t < trials; ++t) {
+            int uid = static_cast<int>(user_count * (t + 1) / (trials + 1));
+            network.friend_suggestions(uid);
+        }
         end = std::chrono::steady_clock::now();
-        double suggestions_ms = elapsed_ms(start, end);
+        double suggestions_ms = elapsed_ms(start, end) / trials;
 
         start = std::chrono::steady_clock::now();
         network.most_active_users(10);

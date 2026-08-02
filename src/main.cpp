@@ -330,7 +330,7 @@ void stats_menu(SocialNetwork& _network)
         }
         case 3: {
             std::cout << "Ejecutando benchmark, esto puede tardar unos segundos..." << std::endl;
-            Benchmark::run("data/generador/benchmark_results.csv");
+            Benchmark::run("benchmark_results.csv");
             break;
         }
         default:
