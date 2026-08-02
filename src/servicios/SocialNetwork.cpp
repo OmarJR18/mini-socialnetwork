@@ -214,6 +214,9 @@ Vector<Comment> SocialNetwork::comments_of_post(int _post_id) const
 
 bool SocialNetwork::add_friend(int _user_a, int _user_b)
 {
+    if (_user_a == _user_b)
+        return false;
+
     User* user_a = m_users.search(_user_a);
     User* user_b = m_users.search(_user_b);
     if (user_a == nullptr || user_b == nullptr)
